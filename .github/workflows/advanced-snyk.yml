@@ -95,15 +95,15 @@ jobs:
             --json-file-output=snyk-container.json
 
       - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('snyk-${{ matrix.scan-type }}.sarif') != ''
         with:
           sarif_file: snyk-${{ matrix.scan-type }}.sarif
           category: snyk-${{ matrix.scan-type }}
 
       - name: Archive scan results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && (hashFiles('snyk-${{ matrix.scan-type }}.sarif') != '' || hashFiles('snyk-${{ matrix.scan-type }}.json') != '')
         with:
           name: snyk-${{ matrix.scan-type }}-results-${{ github.sha }}
           path: |
@@ -192,14 +192,14 @@ jobs:
             --sarif-file-output=snyk-enhanced-code.sarif
 
       - name: Upload enhanced results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: snyk-enhanced.sarif
           category: snyk-enhanced
 
       - name: Upload enhanced code results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: snyk-enhanced-code.sarif

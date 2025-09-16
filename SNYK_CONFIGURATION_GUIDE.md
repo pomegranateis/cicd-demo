@@ -215,7 +215,7 @@ strategy:
 ### 2. Upload Results to GitHub Security
 ```yaml
 - name: Upload results
-  uses: github/codeql-action/upload-sarif@v2
+  uses: github/codeql-action/upload-sarif@v3
   with:
     sarif_file: snyk.sarif
 ```

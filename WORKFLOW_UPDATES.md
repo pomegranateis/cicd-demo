@@ -26,7 +26,38 @@
     merge-multiple: true  # New option to merge all artifacts
 ```
 
-### 2. GitHub API Permissions
+### 2. Deprecated CodeQL Action
+**Problem**: Using deprecated `github/codeql-action/upload-sarif@v2`
+
+**Solution**: Updated to v3:
+
+```yaml
+# OLD (deprecated)
+- uses: github/codeql-action/upload-sarif@v2
+  with:
+    sarif_file: snyk.sarif
+
+# NEW (current)
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: snyk.sarif
+```
+
+### 3. Missing SARIF Files
+**Problem**: `Path does not exist: snyk-container.sarif`
+
+**Solution**: Added file existence checks:
+
+```yaml
+# Check if SARIF file exists before upload
+- name: Upload SARIF to GitHub Security
+  uses: github/codeql-action/upload-sarif@v3
+  if: always() && hashFiles('snyk-*.sarif') != ''
+  with:
+    sarif_file: snyk-results.sarif
+```
+
+### 4. GitHub API Permissions
 **Problem**: `HttpError: Resource not accessible by integration`
 
 **Solution**: Added proper permissions to all workflows:
@@ -39,7 +70,7 @@ permissions:
   actions: read          # Read workflow artifacts
 ```
 
-### 3. GitHub Script Action
+### 5. GitHub Script Action
 **Problem**: Using outdated `actions/github-script@v6`
 
 **Solution**: Updated to v7 with explicit token:
@@ -65,8 +96,10 @@ All workflow files have been updated with:
 
 1. **Permissions block** at the top level
 2. **Artifact actions v4** with new syntax
-3. **GitHub Script v7** with explicit token
-4. **Proper error handling** for SARIF uploads
+3. **CodeQL action v3** for SARIF uploads
+4. **GitHub Script v7** with explicit token
+5. **File existence checks** for SARIF uploads
+6. **Proper error handling** for missing files
 
 ## Key Changes Summary
 
@@ -74,8 +107,10 @@ All workflow files have been updated with:
 |-----------|-------------|-------------|-------------|
 | upload-artifact | v3 | v4 | Same syntax, better performance |
 | download-artifact | v3 | v4 | Added `merge-multiple: true` option |
+| codeql-action | v2 | v3 | SARIF upload compatibility |
 | github-script | v6 | v7 | Requires explicit `github-token` |
 | Permissions | Not specified | Added block | Required for Security tab integration |
+| SARIF checks | None | File existence | Prevents missing file errors |
 
 ## Workflow Status
 
