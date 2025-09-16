@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.2</version>
+		<version>3.3.3</version>
 		<relativePath/>
 		<!-- lookup parent from repository -->
 	</parent>
@@ -16,7 +16,9 @@
 	<packaging>jar</packaging>
 	<description>CICD Demo project for Spring Boot</description>
 	<properties>
-		<java.version>17</java.version>
+		<java.version>26</java.version>
+		<maven.compiler.source>26</maven.compiler.source>
+		<maven.compiler.target>26</maven.compiler.target>
 		<sonar.organization>darryl1975</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<sonar.coverage.jacoco.xmlReportPaths>

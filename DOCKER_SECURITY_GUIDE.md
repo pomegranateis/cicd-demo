@@ -5,23 +5,27 @@
 The original Dockerfile had several security vulnerabilities:
 
 ### 1. **Vulnerable Base Image**
+
 ```dockerfile
 # PROBLEMATIC: Contains 32 high vulnerabilities
 FROM openjdk:17-oracle
 ```
 
 **Issues:**
+
 - Oracle OpenJDK images are less frequently updated
 - Contains known security vulnerabilities
 - Larger attack surface
 
 ### 2. **Running as Root User**
+
 ```dockerfile
 # PROBLEMATIC: Runs as root by default
 CMD ["java", "-jar", "cicd-demo-0.0.1-SNAPSHOT.jar"]
 ```
 
 **Issues:**
+
 - Container runs with root privileges
 - Increased security risk if container is compromised
 - Violates principle of least privilege
@@ -29,18 +33,21 @@ CMD ["java", "-jar", "cicd-demo-0.0.1-SNAPSHOT.jar"]
 ## Security Improvements Applied
 
 ### 1. **Secure Base Image**
+
 ```dockerfile
 # SECURE: Eclipse Temurin with Alpine Linux
 FROM eclipse-temurin:17-jre-alpine
 ```
 
 **Benefits:**
+
 - ✅ Regularly updated and maintained by Eclipse Foundation
 - ✅ Alpine Linux has minimal attack surface
 - ✅ Significantly fewer vulnerabilities
 - ✅ Smaller image size (better performance)
 
 ### 2. **Non-Root User**
+
 ```dockerfile
 # Create non-root user
 RUN addgroup -g 1001 -S appgroup && \
@@ -51,22 +58,26 @@ USER appuser
 ```
 
 **Benefits:**
+
 - ✅ Follows principle of least privilege
 - ✅ Limits damage if container is compromised
 - ✅ Security best practice compliance
 
 ### 3. **Proper File Permissions**
+
 ```dockerfile
 # Change ownership to non-root user
 RUN chown -R appuser:appgroup /app
 ```
 
 **Benefits:**
+
 - ✅ Application files owned by non-root user
 - ✅ Prevents privilege escalation
 - ✅ Secure file access control
 
 ### 4. **Health Checks**
+
 ```dockerfile
 # Add health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
@@ -74,17 +85,20 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 ```
 
 **Benefits:**
+
 - ✅ Container health monitoring
 - ✅ Automatic restart on failure
 - ✅ Better orchestration support
 
 ### 5. **JVM Security Configuration**
+
 ```dockerfile
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 CMD ["sh", "-c", "java $JAVA_OPTS -jar cicd-demo-0.0.1-SNAPSHOT.jar"]
 ```
 
 **Benefits:**
+
 - ✅ Memory limits prevent resource exhaustion
 - ✅ Configurable JVM parameters
 - ✅ Better resource management
@@ -94,6 +108,7 @@ CMD ["sh", "-c", "java $JAVA_OPTS -jar cicd-demo-0.0.1-SNAPSHOT.jar"]
 The `dockerfile.secure` provides additional security:
 
 ### 1. **Multi-stage Build**
+
 ```dockerfile
 FROM eclipse-temurin:17-jdk-alpine AS builder
 # ... build stage ...
@@ -103,11 +118,13 @@ FROM eclipse-temurin:17-jre-alpine AS runtime
 ```
 
 **Benefits:**
+
 - ✅ Smaller final image (no build tools)
 - ✅ Reduced attack surface
 - ✅ Faster deployment
 
 ### 2. **Layer Optimization**
+
 ```dockerfile
 COPY --from=builder --chown=appuser:appgroup /workspace/app/target/dependency/BOOT-INF/lib /app/lib
 COPY --from=builder --chown=appuser:appgroup /workspace/app/target/dependency/META-INF /app/META-INF
@@ -115,11 +132,13 @@ COPY --from=builder --chown=appuser:appgroup /workspace/app/target/dependency/BO
 ```
 
 **Benefits:**
+
 - ✅ Better Docker layer caching
 - ✅ Faster builds on dependency changes
 - ✅ Optimized image size
 
 ### 3. **Security Updates**
+
 ```dockerfile
 RUN apk update && \
     apk upgrade && \
@@ -128,6 +147,7 @@ RUN apk update && \
 ```
 
 **Benefits:**
+
 - ✅ Latest security patches applied
 - ✅ Minimal required packages only
 - ✅ Clean package cache
@@ -152,14 +172,14 @@ Update your workflows to scan the secure image:
 
 ## Comparison Results
 
-| Aspect | Original (`openjdk:17-oracle`) | Improved (`eclipse-temurin:17-jre-alpine`) |
-|--------|--------------------------------|-------------------------------------------|
-| **Vulnerabilities** | 32 high/critical | Significantly reduced |
-| **Image Size** | ~470MB | ~200MB |
-| **Security Updates** | Infrequent | Regular |
-| **User Privileges** | Root | Non-root |
-| **Health Monitoring** | None | Built-in |
-| **Build Performance** | Slower | Faster |
+| Aspect                | Original (`openjdk:17-oracle`) | Improved (`eclipse-temurin:17-jre-alpine`) |
+| --------------------- | ------------------------------ | ------------------------------------------ |
+| **Vulnerabilities**   | 32 high/critical               | Significantly reduced                      |
+| **Image Size**        | ~470MB                         | ~200MB                                     |
+| **Security Updates**  | Infrequent                     | Regular                                    |
+| **User Privileges**   | Root                           | Non-root                                   |
+| **Health Monitoring** | None                           | Built-in                                   |
+| **Build Performance** | Slower                         | Faster                                     |
 
 ## Best Practices Applied
 

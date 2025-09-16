@@ -1,5 +1,5 @@
 # Use a more secure Java base image
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:26-jre-alpine
 
 # https://medium.com/@skywalkerhunter/aws-docker-deploy-spring-boot-fe05a00191d9
 # added on 31st Oct
