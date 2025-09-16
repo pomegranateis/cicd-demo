@@ -1,4 +1,13 @@
-# .snyk file - Enhanced configuration for cicd-demo project
+# .snyk file - Enhanced configu# Project-wide exclusions
+exclude:
+  - "target/**"
+  - "**/*.class" 
+  - "logs/**"
+  - ".mvn/**"
+  - "dockerfile"
+  - "dockerrun.aws.json"
+  - "buildspec.yml"
+  - "appspec.yml" for cicd-demo project
 version: v1.0.0
 
 # Ignore specific vulnerabilities

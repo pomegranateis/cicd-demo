@@ -1,0 +1,59 @@
+# Multi-stage Dockerfile for Enhanced Security
+# Stage 1: Build stage
+FROM eclipse-temurin:17-jdk-alpine AS builder
+
+# Set working directory
+WORKDIR /workspace/app
+
+# Copy Maven files for dependency resolution
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+
+# Download dependencies (this layer will be cached if pom.xml doesn't change)
+RUN ./mvnw dependency:go-offline -B
+
+# Copy source code
+COPY src src
+
+# Build the application
+RUN ./mvnw package -DskipTests
+RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
+
+# Stage 2: Runtime stage
+FROM eclipse-temurin:17-jre-alpine AS runtime
+
+# Install security updates and required tools
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache curl && \
+    rm -rf /var/cache/apk/*
+
+# Create non-root user
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+
+# Set working directory
+WORKDIR /app
+
+# Copy application layers from builder stage
+COPY --from=builder --chown=appuser:appgroup /workspace/app/target/dependency/BOOT-INF/lib /app/lib
+COPY --from=builder --chown=appuser:appgroup /workspace/app/target/dependency/META-INF /app/META-INF
+COPY --from=builder --chown=appuser:appgroup /workspace/app/target/dependency/BOOT-INF/classes /app
+
+# Switch to non-root user
+USER appuser
+
+# Set JVM options for security and performance
+ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=70.0"
+ENV SERVER_PORT=5000
+
+# Expose application port
+EXPOSE 5000
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:5000/actuator/health || exit 1
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -cp /app:/app/lib/* sg.edu.nus.iss.cicddemo.CicdDemoApplication"]
