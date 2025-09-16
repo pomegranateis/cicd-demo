@@ -10,7 +10,7 @@ ignore:
     - "*":
         reason: "False positive - not exploitable in our context"
         expires: "2024-12-31T23:59:59.999Z"
-  
+
   # Example: Ignore vulnerability in test dependencies only
   "SNYK-JAVA-JUNIT-567890":
     - "src/test/**":
@@ -25,14 +25,14 @@ language-settings:
   java:
     # Exclude test dependencies from production vulnerability scanning
     include-dev-deps: false
-    
+
     # Maven-specific settings
     maven-aggregate-project: true
 
 # Project-wide exclusions
 exclude:
   - "target/**"
-  - "**/*.class" 
+  - "**/*.class"
   - "logs/**"
   - ".mvn/**"
 

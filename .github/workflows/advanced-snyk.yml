@@ -26,7 +26,7 @@ jobs:
   comprehensive-security:
     name: Comprehensive Security Scan
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -253,7 +253,7 @@ jobs:
           echo "Generated on: $(date)" >> security-summary.md
           echo "" >> security-summary.md
           echo "## Scan Results" >> security-summary.md
-          
+
           for dir in snyk-*-results-*/; do
             if [ -d "$dir" ]; then
               echo "### ${dir%/}" >> security-summary.md

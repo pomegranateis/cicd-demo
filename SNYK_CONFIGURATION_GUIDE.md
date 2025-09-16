@@ -3,6 +3,7 @@
 This document provides a comprehensive reference for all Snyk configurations used in this project.
 
 ## Table of Contents
+
 1. [Snyk Action Parameters](#snyk-action-parameters)
 2. [Severity Thresholds](#severity-thresholds)
 3. [Fail Conditions](#fail-conditions)
@@ -14,41 +15,43 @@ This document provides a comprehensive reference for all Snyk configurations use
 
 ### Common Parameters
 
-| Parameter | Description | Example Values | Default |
-|-----------|-------------|----------------|---------|
-| `--severity-threshold` | Minimum severity to report | `low`, `medium`, `high`, `critical` | `low` |
-| `--fail-on` | Conditions to fail the build | `all`, `upgradable`, `patchable` | `all` |
-| `--file` | Specific file to scan | `pom.xml`, `package.json` | Auto-detected |
-| `--project-name` | Custom project name | `my-app-production` | Repository name |
-| `--target-reference` | Git reference | `refs/heads/master` | Current ref |
-| `--remote-repo-url` | Repository URL | `https://github.com/user/repo.git` | Current repo |
+| Parameter              | Description                  | Example Values                      | Default         |
+| ---------------------- | ---------------------------- | ----------------------------------- | --------------- |
+| `--severity-threshold` | Minimum severity to report   | `low`, `medium`, `high`, `critical` | `low`           |
+| `--fail-on`            | Conditions to fail the build | `all`, `upgradable`, `patchable`    | `all`           |
+| `--file`               | Specific file to scan        | `pom.xml`, `package.json`           | Auto-detected   |
+| `--project-name`       | Custom project name          | `my-app-production`                 | Repository name |
+| `--target-reference`   | Git reference                | `refs/heads/master`                 | Current ref     |
+| `--remote-repo-url`    | Repository URL               | `https://github.com/user/repo.git`  | Current repo    |
 
 ### Output Parameters
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `--json-file-output` | Output JSON results to file | `snyk-results.json` |
+| Parameter             | Description                  | Example              |
+| --------------------- | ---------------------------- | -------------------- |
+| `--json-file-output`  | Output JSON results to file  | `snyk-results.json`  |
 | `--sarif-file-output` | Output SARIF results to file | `snyk-results.sarif` |
-| `--print-deps` | Print dependency tree | N/A |
+| `--print-deps`        | Print dependency tree        | N/A                  |
 
 ### Container-Specific Parameters
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `--exclude-base-image-vulns` | Exclude base image vulnerabilities | N/A |
-| `--platform` | Target platform | `linux/amd64` |
-| `--username` | Registry username | `myuser` |
-| `--password` | Registry password | `${{ secrets.REGISTRY_PASSWORD }}` |
+| Parameter                    | Description                        | Example                            |
+| ---------------------------- | ---------------------------------- | ---------------------------------- |
+| `--exclude-base-image-vulns` | Exclude base image vulnerabilities | N/A                                |
+| `--platform`                 | Target platform                    | `linux/amd64`                      |
+| `--username`                 | Registry username                  | `myuser`                           |
+| `--password`                 | Registry password                  | `${{ secrets.REGISTRY_PASSWORD }}` |
 
 ## Severity Thresholds
 
 ### Available Levels
+
 - **low**: All vulnerabilities (most verbose)
 - **medium**: Medium, high, and critical vulnerabilities
 - **high**: High and critical vulnerabilities only
 - **critical**: Only critical vulnerabilities
 
 ### Usage Examples
+
 ```yaml
 # Report only critical vulnerabilities
 args: --severity-threshold=critical
@@ -60,11 +63,13 @@ args: --severity-threshold=medium
 ## Fail Conditions
 
 ### Available Options
+
 - **all**: Fail on any vulnerability found
 - **upgradable**: Fail only on vulnerabilities with available upgrades
 - **patchable**: Fail only on vulnerabilities with available patches
 
 ### Usage Examples
+
 ```yaml
 # Fail on any vulnerability
 args: --fail-on=all
@@ -76,6 +81,7 @@ args: --fail-on=upgradable
 ## Output Formats
 
 ### SARIF (Static Analysis Results Interchange Format)
+
 - Integrates with GitHub Security tab
 - Provides detailed vulnerability information
 - Enables code scanning alerts
@@ -86,6 +92,7 @@ with:
 ```
 
 ### JSON Format
+
 - Machine-readable results
 - Useful for custom processing
 - Contains detailed vulnerability data
@@ -98,6 +105,7 @@ with:
 ## Project Configuration
 
 ### .snyk File Structure
+
 ```yaml
 version: v1.0.0
 
@@ -121,6 +129,7 @@ exclude:
 ```
 
 ### Ignore Patterns
+
 ```yaml
 # Ignore in all paths
 "VULNERABILITY-ID":
@@ -136,6 +145,7 @@ exclude:
 ## Conditional Scanning
 
 ### Event-Based Conditions
+
 ```yaml
 # Only on pull requests or master branch
 if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
@@ -148,6 +158,7 @@ if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 ```
 
 ### File Change Conditions
+
 ```yaml
 # Use paths-filter action to detect changes
 - uses: dorny/paths-filter@v2
@@ -164,12 +175,14 @@ if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 ## Command Types
 
 ### Dependency Scanning (Default)
+
 ```yaml
 uses: snyk/actions/maven@master
 # Scans for known vulnerabilities in dependencies
 ```
 
 ### Code Analysis (SAST)
+
 ```yaml
 uses: snyk/actions/maven@master
 with:
@@ -178,6 +191,7 @@ with:
 ```
 
 ### Container Scanning
+
 ```yaml
 uses: snyk/actions/docker@master
 with:
@@ -186,6 +200,7 @@ with:
 ```
 
 ### Monitoring
+
 ```yaml
 uses: snyk/actions/maven@master
 with:
@@ -196,9 +211,11 @@ with:
 ## Environment Variables
 
 ### Required
+
 - `SNYK_TOKEN`: Authentication token for Snyk API
 
 ### Optional
+
 - `SNYK_CFG_ORG`: Snyk organization ID
 - `SNYK_CFG_SEVERITY_THRESHOLD`: Default severity threshold
 - `SNYK_INTEGRATION_NAME`: Integration name for reporting
@@ -206,6 +223,7 @@ with:
 ## Best Practices
 
 ### 1. Use Matrix Strategy for Multiple Scans
+
 ```yaml
 strategy:
   matrix:
@@ -213,6 +231,7 @@ strategy:
 ```
 
 ### 2. Upload Results to GitHub Security
+
 ```yaml
 - name: Upload results
   uses: github/codeql-action/upload-sarif@v3
@@ -221,6 +240,7 @@ strategy:
 ```
 
 ### 3. Archive Results for Review
+
 ```yaml
 - name: Archive results
   uses: actions/upload-artifact@v4
@@ -230,11 +250,13 @@ strategy:
 ```
 
 ### 4. Use Appropriate Thresholds by Environment
+
 - **Development**: `--severity-threshold=low`
 - **Staging**: `--severity-threshold=medium`
 - **Production**: `--severity-threshold=high`
 
 ### 5. Configure Proper Failure Conditions
+
 - **CI/CD**: `--fail-on=upgradable`
 - **Security Audit**: `--fail-on=all`
 - **Monitoring**: Don't fail, just report
@@ -244,18 +266,22 @@ strategy:
 ### Common Issues
 
 #### Authentication Errors
+
 - Ensure `SNYK_TOKEN` is set in repository secrets
 - Verify token has appropriate permissions
 
 #### Build Failures
+
 - Ensure project is compiled before scanning
 - Check dependency resolution issues
 
 #### SARIF Upload Failures
+
 - Verify SARIF file is generated
 - Check file path and permissions
 
 ### Debug Options
+
 ```yaml
 # Enable debug logging
 env:
@@ -269,6 +295,7 @@ with:
 ## Integration Examples
 
 ### Basic Integration
+
 ```yaml
 - name: Run Snyk
   uses: snyk/actions/maven@master
@@ -277,6 +304,7 @@ with:
 ```
 
 ### Advanced Integration
+
 ```yaml
 - name: Run Snyk with full configuration
   uses: snyk/actions/maven@master

@@ -3,6 +3,7 @@
 ## Fixed Issues
 
 ### 1. Deprecated Artifact Actions
+
 **Problem**: Using deprecated `actions/upload-artifact@v3` and `actions/download-artifact@v3`
 
 **Solution**: Updated to v4 with new syntax:
@@ -23,10 +24,11 @@
 # For download-artifact@v4
 - uses: actions/download-artifact@v4
   with:
-    merge-multiple: true  # New option to merge all artifacts
+    merge-multiple: true # New option to merge all artifacts
 ```
 
 ### 2. Deprecated CodeQL Action
+
 **Problem**: Using deprecated `github/codeql-action/upload-sarif@v2`
 
 **Solution**: Updated to v3:
@@ -44,6 +46,7 @@
 ```
 
 ### 3. Missing SARIF Files
+
 **Problem**: `Path does not exist: snyk-container.sarif`
 
 **Solution**: Added file existence checks:
@@ -58,19 +61,21 @@
 ```
 
 ### 4. GitHub API Permissions
+
 **Problem**: `HttpError: Resource not accessible by integration`
 
 **Solution**: Added proper permissions to all workflows:
 
 ```yaml
 permissions:
-  contents: read          # Read repository contents
-  security-events: write  # Upload SARIF to Security tab
-  issues: write          # Create security issues (optional)
-  actions: read          # Read workflow artifacts
+  contents: read # Read repository contents
+  security-events: write # Upload SARIF to Security tab
+  issues: write # Create security issues (optional)
+  actions: read # Read workflow artifacts
 ```
 
 ### 5. GitHub Script Action
+
 **Problem**: Using outdated `actions/github-script@v6`
 
 **Solution**: Updated to v7 with explicit token:
@@ -103,14 +108,14 @@ All workflow files have been updated with:
 
 ## Key Changes Summary
 
-| Component | Old Version | New Version | Key Changes |
-|-----------|-------------|-------------|-------------|
-| upload-artifact | v3 | v4 | Same syntax, better performance |
-| download-artifact | v3 | v4 | Added `merge-multiple: true` option |
-| codeql-action | v2 | v3 | SARIF upload compatibility |
-| github-script | v6 | v7 | Requires explicit `github-token` |
-| Permissions | Not specified | Added block | Required for Security tab integration |
-| SARIF checks | None | File existence | Prevents missing file errors |
+| Component         | Old Version   | New Version    | Key Changes                           |
+| ----------------- | ------------- | -------------- | ------------------------------------- |
+| upload-artifact   | v3            | v4             | Same syntax, better performance       |
+| download-artifact | v3            | v4             | Added `merge-multiple: true` option   |
+| codeql-action     | v2            | v3             | SARIF upload compatibility            |
+| github-script     | v6            | v7             | Requires explicit `github-token`      |
+| Permissions       | Not specified | Added block    | Required for Security tab integration |
+| SARIF checks      | None          | File existence | Prevents missing file errors          |
 
 ## Workflow Status
 
