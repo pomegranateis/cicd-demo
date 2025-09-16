@@ -223,7 +223,7 @@ strategy:
 ### 3. Archive Results for Review
 ```yaml
 - name: Archive results
-  uses: actions/upload-artifact@v3
+  uses: actions/upload-artifact@v4
   with:
     name: snyk-results
     path: snyk.sarif
