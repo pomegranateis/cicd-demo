@@ -1,0 +1,312 @@
+# Advanced Snyk Integration - Comprehensive Security Workflow
+# Demonstrates multiple scan types, conditional scanning, and advanced configurations
+name: Advanced Snyk Security Analysis
+
+on:
+  push:
+    branches: ["master", "main"]
+  pull_request:
+    branches: ["master", "main"]
+  schedule:
+    # Run comprehensive security scan every day at 3 AM UTC
+    - cron: "0 3 * * *"
+
+env:
+  JAVA_VERSION: "17"
+  MAVEN_OPTS: "-Xmx1024m"
+
+jobs:
+  # Multiple scan types using matrix strategy
+  comprehensive-security:
+    name: Comprehensive Security Scan
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        scan-type: [dependencies, code, container]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: "temurin"
+          cache: maven
+
+      - name: Build project (required for analysis)
+        run: mvn clean compile -DskipTests
+
+      - name: Dependency Scan
+        if: matrix.scan-type == 'dependencies'
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: >
+            --severity-threshold=medium
+            --fail-on=upgradable
+            --project-name=${{ github.repository }}-deps-${{ github.sha }}
+            --sarif-file-output=snyk-dependencies.sarif
+            --json-file-output=snyk-dependencies.json
+
+      - name: Code Scan (SAST)
+        if: matrix.scan-type == 'code'
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: code test
+          args: >
+            --severity-threshold=high
+            --project-name=${{ github.repository }}-code-${{ github.sha }}
+            --sarif-file-output=snyk-code.sarif
+            --json-file-output=snyk-code.json
+
+      - name: Build Docker image for container scan
+        if: matrix.scan-type == 'container'
+        run: |
+          mvn clean package -DskipTests
+          docker build -t cicd-demo:${{ github.sha }} .
+          docker tag cicd-demo:${{ github.sha }} cicd-demo:latest
+
+      - name: Container Scan
+        if: matrix.scan-type == 'container'
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: "cicd-demo:latest"
+          args: >
+            --severity-threshold=high
+            --file=dockerfile
+            --exclude-base-image-vulns
+            --project-name=${{ github.repository }}-container-${{ github.sha }}
+            --sarif-file-output=snyk-container.sarif
+            --json-file-output=snyk-container.json
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: snyk-${{ matrix.scan-type }}.sarif
+          category: snyk-${{ matrix.scan-type }}
+
+      - name: Archive scan results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: snyk-${{ matrix.scan-type }}-results-${{ github.sha }}
+          path: |
+            snyk-${{ matrix.scan-type }}.sarif
+            snyk-${{ matrix.scan-type }}.json
+          retention-days: 30
+
+  # Conditional scanning - only on specific conditions
+  conditional-security:
+    name: Conditional Security Scan
+    runs-on: ubuntu-latest
+    # Only run on PR or master branch pushes
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: "temurin"
+          cache: maven
+
+      - name: Build for analysis
+        run: mvn clean compile
+
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: >
+            --severity-threshold=critical
+            --fail-on=all
+            --project-name=${{ github.repository }}-conditional
+
+  # Enhanced Snyk configuration with custom parameters
+  enhanced-snyk:
+    name: Enhanced Snyk Analysis
+    runs-on: ubuntu-latest
+    # Run only on scheduled events or master branch
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: "temurin"
+          cache: maven
+
+      - name: Prepare project for scanning
+        run: |
+          mvn clean compile
+          mvn dependency:tree > dependency-tree.txt
+
+      - name: Run Enhanced Snyk Scan
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: >
+            --file=pom.xml
+            --severity-threshold=low
+            --fail-on=patchable
+            --project-name=${{ github.repository }}-enhanced
+            --target-reference=${{ github.ref }}
+            --remote-repo-url=${{ github.server_url }}/${{ github.repository }}.git
+            --sarif-file-output=snyk-enhanced.sarif
+            --json-file-output=snyk-enhanced.json
+
+      - name: Snyk Code Analysis with custom exclusions
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: code test
+          args: >
+            --severity-threshold=medium
+            --project-name=${{ github.repository }}-enhanced-code
+            --sarif-file-output=snyk-enhanced-code.sarif
+
+      - name: Upload enhanced results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: snyk-enhanced.sarif
+          category: snyk-enhanced
+
+      - name: Upload enhanced code results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: snyk-enhanced-code.sarif
+          category: snyk-enhanced-code
+
+  # Monitor production dependencies
+  monitor-production:
+    name: Monitor Production Dependencies
+    runs-on: ubuntu-latest
+    # Only monitor on master branch pushes
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: "temurin"
+          cache: maven
+
+      - name: Monitor with Snyk
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: >
+            --project-name=${{ github.repository }}-production
+            --target-reference=${{ github.ref }}
+            --remote-repo-url=${{ github.server_url }}/${{ github.repository }}.git
+
+  # Security report generation
+  security-report:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [comprehensive-security, enhanced-snyk]
+    if: always()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate security summary
+        run: |
+          echo "# Security Scan Summary" > security-summary.md
+          echo "Generated on: $(date)" >> security-summary.md
+          echo "" >> security-summary.md
+          echo "## Scan Results" >> security-summary.md
+          
+          for dir in snyk-*-results-*/; do
+            if [ -d "$dir" ]; then
+              echo "### ${dir%/}" >> security-summary.md
+              if [ -f "$dir"/*.json ]; then
+                echo "JSON results available in $dir" >> security-summary.md
+              fi
+              if [ -f "$dir"/*.sarif ]; then
+                echo "SARIF results available in $dir" >> security-summary.md
+              fi
+              echo "" >> security-summary.md
+            fi
+          done
+
+      - name: Upload security summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-summary
+          path: security-summary.md
+          retention-days: 90
+
+  # Notification for critical vulnerabilities
+  security-notification:
+    name: Security Notifications
+    runs-on: ubuntu-latest
+    needs: [comprehensive-security, conditional-security, enhanced-snyk]
+    if: failure() && github.event_name != 'pull_request'
+
+    steps:
+      - name: Create security issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const title = `🔒 Critical Security Alert - ${context.sha.substring(0, 7)}`;
+            const body = `
+            ## Security Vulnerability Detected
+
+            **Repository:** ${{ github.repository }}
+            **Branch:** ${{ github.ref }}
+            **Commit:** ${{ github.sha }}
+            **Workflow:** ${{ github.workflow }}
+
+            ### Details
+            Critical security vulnerabilities have been identified during automated scanning.
+
+            ### Required Actions
+            1. 🔍 Review scan results in the [Security tab](${context.payload.repository.html_url}/security)
+            2. 📋 Check detailed findings in the [workflow run](${context.payload.repository.html_url}/actions/runs/${{ github.run_id }})
+            3. 🔧 Apply necessary patches or updates
+            4. ✅ Re-run security scans to verify fixes
+
+            ### Severity Information
+            Please prioritize based on the vulnerability severity levels reported by Snyk.
+
+            ---
+            *This issue was automatically created by the security workflow.*
+            `;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'vulnerability', 'urgent']
+            });
