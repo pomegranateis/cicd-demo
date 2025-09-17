@@ -25,7 +25,6 @@ language-settings:
   java:
     # Exclude test dependencies from production vulnerability scanning
     include-dev-deps: false
-
     # Maven-specific settings
     maven-aggregate-project: true
 
@@ -40,40 +39,6 @@ exclude:
   - "dockerrun.aws.json"
   - "buildspec.yml"
   - "appspec.yml"
-
-# Snyk Code specific settings (for SAST scanning)
-code:
-  # Exclude specific files or patterns from code analysis
-  exclude:
-    - "src/test/**"
-    - "**/*.properties"
-    - "**/target/**"
-        expires: "2024-12-31T23:59:59.999Z"
-
-  # Example: Ignore vulnerability in test dependencies only
-  "SNYK-JAVA-JUNIT-567890":
-    - "src/test/**":
-        reason: "Test dependency - not present in production"
-        expires: "2024-06-30T23:59:59.999Z"
-
-# Patch configuration
-patches: {}
-
-# Language settings
-language-settings:
-  java:
-    # Exclude test dependencies from production vulnerability scanning
-    include-dev-deps: false
-
-    # Maven-specific settings
-    maven-aggregate-project: true
-
-# Project-wide exclusions
-exclude:
-  - "target/**"
-  - "**/*.class"
-  - "logs/**"
-  - ".mvn/**"
 
 # Snyk Code specific settings (for SAST scanning)
 code:

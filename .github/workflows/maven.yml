@@ -45,6 +45,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
+        id: setup-java
         uses: actions/setup-java@v4
         with:
           java-version: "21"
@@ -60,6 +61,12 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x ./mvnw
 
+      - name: Test Maven wrapper
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Maven wrapper location: $(ls -la mvnw)"
+          ./mvnw --version
+
       - name: Build project for Snyk analysis
         run: ./mvnw clean compile
 
@@ -67,7 +74,6 @@ jobs:
         uses: snyk/actions/maven@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          JAVA_HOME: ${{ env.JAVA_HOME }}
         with:
           args: --file=pom.xml --severity-threshold=high --fail-on=upgradable --sarif-file-output=snyk.sarif
 
@@ -81,7 +87,6 @@ jobs:
         uses: snyk/actions/maven@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          JAVA_HOME: ${{ env.JAVA_HOME }}
         with:
           command: monitor
           args: --file=pom.xml
