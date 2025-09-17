@@ -43,6 +43,15 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Verify Java Setup
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          echo "PATH: $PATH"
+          java -version
+          which java
+          echo "Maven wrapper location:"
+          ls -la mvnw
+
       - name: Make Maven wrapper executable
         run: chmod +x ./mvnw
 
@@ -82,7 +91,7 @@ jobs:
         if: matrix.scan-type == 'container'
         run: |
           ./mvnw clean package -DskipTests
-          docker build -t cicd-demo:${{ github.sha }} .
+          docker build -f Dockerfile -t cicd-demo:${{ github.sha }} .
           docker tag cicd-demo:${{ github.sha }} cicd-demo:latest
 
       - name: Container Scan
@@ -94,7 +103,7 @@ jobs:
           image: "cicd-demo:latest"
           args: >
             --severity-threshold=high
-            --file=dockerfile
+            --file=Dockerfile
             --exclude-base-image-vulns
             --project-name=${{ github.repository }}-container-${{ github.sha }}
             --sarif-file-output=snyk-container.sarif
@@ -239,13 +248,18 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
       - name: Monitor with Snyk
         uses: snyk/actions/maven@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          JAVA_HOME: ${{ env.JAVA_HOME }}
         with:
           command: monitor
           args: >
+            --file=pom.xml
             --project-name=${{ github.repository }}-production
             --target-reference=${{ github.ref }}
             --remote-repo-url=${{ github.server_url }}/${{ github.repository }}.git

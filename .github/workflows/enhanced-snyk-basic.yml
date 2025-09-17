@@ -9,6 +9,12 @@
           distribution: "temurin"
           cache: maven
 
+      - name: Verify Java Setup
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          which java
+
       - name: Make Maven wrapper executablehe enhanced configuration from Step 6.2
 name: Enhanced Security with Snyk
 

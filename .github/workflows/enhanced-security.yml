@@ -45,7 +45,7 @@ jobs:
               - 'pom.xml'
               - '.snyk'
             docker:
-              - 'dockerfile'
+              - 'Dockerfile'
               - 'dockerrun.aws.json'
 
   # Build and test job
@@ -174,7 +174,7 @@ jobs:
           image: cicd-demo:latest
           args: >
             --severity-threshold=high
-            --file=dockerfile
+            --file=Dockerfile
             --exclude-base-image-vulns
             --sarif-file-output=snyk-container.sarif
 

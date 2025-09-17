@@ -1,13 +1,4 @@
-# .snyk file - Enhanced configu# Project-wide exclusions
-exclude:
-  - "target/**"
-  - "**/*.class" 
-  - "logs/**"
-  - ".mvn/**"
-  - "dockerfile"
-  - "dockerrun.aws.json"
-  - "buildspec.yml"
-  - "appspec.yml" for cicd-demo project
+# .snyk file - Enhanced configuration for cicd-demo project
 version: v1.0.0
 
 # Ignore specific vulnerabilities
@@ -18,6 +9,45 @@ ignore:
   "SNYK-JAVA-ORGAPACHECOMMONS-1234567":
     - "*":
         reason: "False positive - not exploitable in our context"
+        expires: "2024-12-31T23:59:59.999Z"
+
+  # Example: Ignore vulnerability in test dependencies only
+  "SNYK-JAVA-JUNIT-567890":
+    - "src/test/**":
+        reason: "Test dependency - not present in production"
+        expires: "2024-06-30T23:59:59.999Z"
+
+# Patch configuration
+patches: {}
+
+# Language settings
+language-settings:
+  java:
+    # Exclude test dependencies from production vulnerability scanning
+    include-dev-deps: false
+
+    # Maven-specific settings
+    maven-aggregate-project: true
+
+# Project-wide exclusions
+exclude:
+  - "target/**"
+  - "**/*.class" 
+  - "logs/**"
+  - ".mvn/**"
+  - "Dockerfile"
+  - "Dockerfile.secure"
+  - "dockerrun.aws.json"
+  - "buildspec.yml"
+  - "appspec.yml"
+
+# Snyk Code specific settings (for SAST scanning)
+code:
+  # Exclude specific files or patterns from code analysis
+  exclude:
+    - "src/test/**"
+    - "**/*.properties"
+    - "**/target/**"
         expires: "2024-12-31T23:59:59.999Z"
 
   # Example: Ignore vulnerability in test dependencies only
