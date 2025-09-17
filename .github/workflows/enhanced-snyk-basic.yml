@@ -1,21 +1,4 @@
 # Enhanced Snyk Security Workflow
-# Dem      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: "21"
-          distribution: "temurin"
-          cache: maven
-
-      - name: Verify Java Setup
-        run: |
-          echo "JAVA_HOME: $JAVA_HOME"
-          java -version
-          which java
-
-      - name: Make Maven wrapper executablehe enhanced configuration from Step 6.2
 name: Enhanced Security with Snyk
 
 on:
@@ -44,8 +27,17 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Verify Java Setup
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          which java
+
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
       - name: Run tests
-        run: mvn -B test
+        run: ./mvnw -B test
 
   security:
     needs: test
@@ -56,18 +48,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 26
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: "26"
+          java-version: "21"
           distribution: "temurin"
           cache: maven
+
+      - name: Verify Java Setup
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          which java
 
       - name: Make Maven wrapper executable
         run: chmod +x ./mvnw
 
       - name: Build project for Snyk analysis
-        run: mvn clean compile
+        run: ./mvnw clean compile
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@master

@@ -23,8 +23,18 @@ jobs:
           java-version: "21"
           distribution: "temurin"
           cache: maven
+
+      - name: Verify Java Setup
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          which java
+
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
       - name: Perform the Unit Test Cases
-        run: mvn -B test
+        run: ./mvnw -B test
   security:
     needs: test
     name: Security Analysis with Snyk
@@ -51,7 +61,7 @@ jobs:
         run: chmod +x ./mvnw
 
       - name: Build project for Snyk analysis
-        run: mvn clean compile
+        run: ./mvnw clean compile
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@master

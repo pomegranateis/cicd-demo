@@ -65,11 +65,20 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Verify Java Setup
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          which java
+
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
       - name: Run unit tests
-        run: mvn -B test --file pom.xml
+        run: ./mvnw -B test --file pom.xml
 
       - name: Generate test coverage report
-        run: mvn jacoco:report
+        run: ./mvnw jacoco:report
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
@@ -99,16 +108,27 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Verify Java Setup
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          which java
+
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
       - name: Build project (required for comprehensive scanning)
-        run: mvn clean compile -DskipTests
+        run: ./mvnw clean compile -DskipTests
 
       - name: Run Snyk Dependency Scan
         if: matrix.scan-type == 'dependencies'
         uses: snyk/actions/maven@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          JAVA_HOME: ${{ env.JAVA_HOME }}
         with:
           args: >
+            --file=pom.xml
             --severity-threshold=medium
             --fail-on=upgradable
             --project-name=${{ github.repository }}-dependencies
@@ -119,6 +139,7 @@ jobs:
         uses: snyk/actions/maven@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          JAVA_HOME: ${{ env.JAVA_HOME }}
         with:
           command: code test
           args: >
@@ -128,7 +149,7 @@ jobs:
 
       - name: Upload SARIF results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('snyk-${{ matrix.scan-type }}.sarif') != ''
         with:
           sarif_file: snyk-${{ matrix.scan-type }}.sarif
           category: snyk-${{ matrix.scan-type }}
@@ -158,8 +179,17 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Verify Java Setup
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          java -version
+          which java
+
+      - name: Make Maven wrapper executable
+        run: chmod +x ./mvnw
+
       - name: Build application JAR
-        run: mvn clean package -DskipTests
+        run: ./mvnw clean package -DskipTests
 
       - name: Build Docker image
         run: |
