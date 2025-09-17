@@ -1,4 +1,7 @@
-name: Java CI with Maven
+name: Java CI with       - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'n
 
 on:
   push:
