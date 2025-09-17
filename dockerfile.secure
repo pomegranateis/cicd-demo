@@ -1,0 +1,45 @@
+# Use a more secure Java base image with updated security patches
+FROM eclipse-temurin:17-jre-alpine
+
+# Security hardening: Remove unnecessary packages and update existing ones
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache curl && \
+    rm -rf /var/cache/apk/*
+
+# Security labels
+LABEL maintainer="Darryl Ng <darryl1975@hotmail.com>"
+LABEL description="Secure Dockerfile for Spring Boot application"
+LABEL security.scan="enabled"
+
+# Create a non-root user with specific UID/GID for security
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+
+# Set the working directory
+WORKDIR /app
+
+# Copy application with proper ownership
+COPY --chown=appuser:appgroup target/cicd-demo-0.0.1-SNAPSHOT.jar /app/cicd-demo-0.0.1-SNAPSHOT.jar
+
+# Switch to non-root user early for security
+USER appuser
+
+# Security-focused JVM options
+ENV JAVA_OPTS="-Djava.awt.headless=true \
+               -Dfile.encoding=UTF-8 \
+               -Djava.security.egd=file:/dev/./urandom \
+               -Dspring.profiles.active=production \
+               -Djava.security.policy=/app/security.policy \
+               -Dcom.sun.management.jmxremote=false \
+               -Dlog4j2.formatMsgNoLookups=true"
+
+# Expose only necessary port
+EXPOSE 5000
+
+# Enhanced health check with security considerations
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:5000/ || exit 1
+
+# Set the command to run the Spring Boot application securely
+CMD ["sh", "-c", "java $JAVA_OPTS -jar /app/cicd-demo-0.0.1-SNAPSHOT.jar"]
