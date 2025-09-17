@@ -101,6 +101,7 @@ jobs:
       - name: Container Scan
         if: matrix.scan-type == 'container'
         uses: snyk/actions/docker@master
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:

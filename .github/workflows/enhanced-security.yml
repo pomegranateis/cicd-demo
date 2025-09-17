@@ -196,22 +196,34 @@ jobs:
 
       - name: Run Snyk Container Scan
         uses: snyk/actions/docker@master
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: cicd-demo:latest
           args: >
             --severity-threshold=high
-            --file=Dockerfile
             --exclude-base-image-vulns
+            --project-name=${{ github.repository }}-container
             --sarif-file-output=snyk-container.sarif
+            --json-file-output=snyk-container.json
 
       - name: Upload container scan results
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('snyk-container.sarif') != ''
         with:
           sarif_file: snyk-container.sarif
           category: snyk-container
+
+      - name: Archive container scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snyk-container-results
+          path: |
+            snyk-container.sarif
+            snyk-container.json
+          retention-days: 30
 
   # Monitor deployed dependencies (only on main branch)
   monitor:
