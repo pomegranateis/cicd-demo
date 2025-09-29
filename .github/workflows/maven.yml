@@ -44,7 +44,11 @@ jobs:
           java-version: "17"
           distribution: "temurin"
           cache: maven
+      - name: Build project for Snyk analysis
+        run: mvn compile
+      - name: Setup Snyk CLI
+        uses: snyk/actions/setup@master
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/maven@master
+        run: snyk test --severity-threshold=medium
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
