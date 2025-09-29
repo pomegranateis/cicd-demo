@@ -51,9 +51,10 @@
 
 ## 🔧 Troubleshooting Common Issues
 
-### 🚨 Issue: "authentication failed (timeout)" 
+### 🚨 Issue: "authentication failed (timeout)"
 
 **Error Details:**
+
 ```
 ERROR   Unspecified Error (SNYK-CLI-0000)
          authentication failed (timeout)
@@ -62,6 +63,7 @@ ERROR   Unspecified Error (SNYK-CLI-0000)
 **Solutions:**
 
 1. **Check SNYK_TOKEN Configuration:**
+
    ```bash
    # In your GitHub repository:
    # Go to Settings → Secrets and variables → Actions
@@ -69,6 +71,7 @@ ERROR   Unspecified Error (SNYK-CLI-0000)
    ```
 
 2. **Verify Token Validity:**
+
    - Go to https://snyk.io
    - Login to your account
    - Navigate to Account Settings → Auth Token
@@ -76,6 +79,7 @@ ERROR   Unspecified Error (SNYK-CLI-0000)
    - Update the GitHub secret with the new token
 
 3. **Manual Token Testing (if you have Snyk CLI locally):**
+
    ```bash
    npm install -g snyk
    snyk auth [YOUR_TOKEN]
@@ -83,6 +87,7 @@ ERROR   Unspecified Error (SNYK-CLI-0000)
    ```
 
 4. **Network/Firewall Issues:**
+
    - GitHub Actions might have network restrictions
    - Try triggering the workflow again (transient network issue)
    - Check GitHub Actions status page
@@ -101,11 +106,13 @@ ERROR   Unspecified Error (SNYK-CLI-0000)
 ### 🔄 If Authentication Keeps Failing:
 
 1. **Recreate Snyk Account:**
+
    - Delete old account if needed
    - Sign up fresh at https://snyk.io
    - Generate new API token
 
 2. **Check Token Format:**
+
    - Should look like: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
    - No extra spaces or characters
 
@@ -123,6 +130,19 @@ ERROR   Unspecified Error (SNYK-CLI-0000)
            env:
              SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
    ```
+
+## 🔧 LATEST UPDATE: Workflow Issues Fixed ✅
+
+**GitHub Actions Integration Errors - RESOLVED:**
+- ✅ Fixed "Resource not accessible by integration" errors
+- ✅ Fixed "Path does not exist: snyk-container.sarif" errors  
+- ✅ Fixed "Specify secrets.SLACK_WEBHOOK_URL" errors
+- ✅ Added robust error handling and permissions
+- ✅ Created simplified alternative workflow
+
+**New Files Added:**
+- `simplified-security.yml` - Reliable alternative workflow
+- `WORKFLOW_FIXES.md` - Detailed fix documentation
 
 ## 🎯 Current Status Summary:
 

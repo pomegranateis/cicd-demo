@@ -1,6 +1,7 @@
 # 🚀 Snyk Quick Reference Guide
 
 ## 🚨 CURRENT ISSUE: Authentication Failed (Timeout)
+
 **Error:** `authentication failed (timeout)`  
 **Status:** ⚠️ Troubleshooting guide created - see solutions below
 
@@ -9,26 +10,30 @@ This quick reference provides essential commands and configurations for using Sn
 ## 🔧 IMMEDIATE FIXES FOR AUTHENTICATION ERROR
 
 ### 1. Get Fresh Snyk Token 🔑
+
 ```bash
 # Visit: https://snyk.io
 # Login → Account Settings → Auth Token → Copy token
 ```
 
-### 2. Configure GitHub Secret 📝  
+### 2. Configure GitHub Secret 📝
+
 ```bash
 # In GitHub repo: Settings → Secrets and variables → Actions
 # Add secret: Name = SNYK_TOKEN, Value = [your copied token]
 ```
 
 ### 3. Test Authentication 🧪
+
 ```bash
 # Go to Actions tab → "Snyk Authentication Test" → Run workflow
 # This new workflow will verify your setup
 ```
 
 ### 4. Project Status ✅
+
 - Tests now pass (5/5) ✅
-- Vulnerable dependencies added ✅  
+- Vulnerable dependencies added ✅
 - Spring Boot context loads properly ✅
 - Ready for Snyk scanning ✅
 

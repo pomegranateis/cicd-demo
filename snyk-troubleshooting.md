@@ -3,6 +3,7 @@
 ## 🚨 Issue: Authentication Failed (Timeout)
 
 You're seeing this error:
+
 ```
 ERROR   Unspecified Error (SNYK-CLI-0000)
          authentication failed (timeout)
@@ -11,6 +12,7 @@ ERROR   Unspecified Error (SNYK-CLI-0000)
 ## 🔍 Root Cause Analysis
 
 This error typically occurs due to one of these reasons:
+
 1. **Missing SNYK_TOKEN** - Secret not configured in GitHub
 2. **Invalid Token** - Token is expired, malformed, or incorrect
 3. **Network Issues** - Temporary connectivity problems
@@ -21,12 +23,14 @@ This error typically occurs due to one of these reasons:
 ### Step 1: Verify Snyk Account Setup ✅
 
 1. **Create/Access Snyk Account:**
+
    ```bash
    # Visit: https://snyk.io
    # Sign up or login (preferably with GitHub account)
    ```
 
 2. **Generate Fresh API Token:**
+
    ```bash
    # In Snyk dashboard:
    # 1. Click your profile (top right)
@@ -45,12 +49,14 @@ This error typically occurs due to one of these reasons:
 ### Step 2: Configure GitHub Secret 🔐
 
 1. **Navigate to Repository Settings:**
+
    ```bash
    # In your GitHub repository:
    # Settings → Secrets and variables → Actions
    ```
 
 2. **Add/Update Secret:**
+
    ```bash
    # Click "New repository secret" or edit existing
    # Name: SNYK_TOKEN (exact case sensitive)
@@ -65,6 +71,7 @@ This error typically occurs due to one of these reasons:
 ### Step 3: Test the Configuration 🧪
 
 1. **Option A: Manual Workflow Trigger**
+
    ```bash
    # Go to Actions tab in your repository
    # Select "Java CI with Maven" workflow
@@ -73,6 +80,7 @@ This error typically occurs due to one of these reasons:
    ```
 
 2. **Option B: Push a Small Change**
+
    ```bash
    # Make any small change to trigger CI/CD
    git add .
@@ -84,7 +92,7 @@ This error typically occurs due to one of these reasons:
    Create `.github/workflows/snyk-test.yml`:
    ```yaml
    name: Snyk Test
-   on: 
+   on:
      workflow_dispatch:
    jobs:
      test-snyk:
@@ -109,14 +117,16 @@ This error typically occurs due to one of these reasons:
 If Snyk continues to fail, consider these alternatives:
 
 1. **Use Different Snyk Action Version:**
+
    ```yaml
    - name: Run Snyk Scan
-     uses: snyk/actions/maven@v1  # Try v1 instead of master
+     uses: snyk/actions/maven@v1 # Try v1 instead of master
      env:
        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
    ```
 
 2. **Install Snyk CLI Manually:**
+
    ```yaml
    - name: Install and Test Snyk
      run: |
@@ -127,6 +137,7 @@ If Snyk continues to fail, consider these alternatives:
 
 3. **Enable GitHub Dependabot** (GitHub's built-in security scanning):
    Create `.github/dependabot.yml`:
+
    ```yaml
    version: 2
    updates:
@@ -143,16 +154,16 @@ If Snyk continues to fail, consider these alternatives:
    name: "CodeQL"
    on:
      push:
-       branches: [ "main", "master" ]
+       branches: ["main", "master"]
      pull_request:
-       branches: [ "main", "master" ]
+       branches: ["main", "master"]
    jobs:
      analyze:
        name: Analyze
        runs-on: ubuntu-latest
        strategy:
          matrix:
-           language: [ 'java' ]
+           language: ["java"]
        steps:
          - name: Checkout repository
            uses: actions/checkout@v4
@@ -171,6 +182,7 @@ If Snyk continues to fail, consider these alternatives:
 When authentication works correctly, you should see:
 
 1. **In Workflow Logs:**
+
    ```
    ✅ Snyk CLI version: x.x.x
    ✅ Testing for known issues...
@@ -178,6 +190,7 @@ When authentication works correctly, you should see:
    ```
 
 2. **Vulnerability Findings:**
+
    ```
    ✓ Vulnerabilities found:
    - commons-collections@3.2.1 (High severity)
