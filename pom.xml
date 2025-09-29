@@ -33,11 +33,16 @@
 			<artifactId>javafaker</artifactId>
 			<version>1.0.2</version>
 		</dependency>
-		<!-- Intentionally vulnerable dependency for Exercise 3 -->
+		<!-- Intentionally vulnerable dependencies for Exercise 3 - These won't break Spring Boot -->
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>2.9.8</version> <!-- Intentionally old version with known vulnerabilities -->
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.1</version> <!-- Known vulnerable version (CVE-2015-6420) -->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.18</version> <!-- Vulnerable version (CVE-2019-12402) -->
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
