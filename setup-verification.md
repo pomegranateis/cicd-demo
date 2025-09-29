@@ -17,9 +17,10 @@
 
 ### ✅ Exercise 3: Vulnerability Management - COMPLETE
 
-- ✅ Vulnerable dependency added: `jackson-databind 2.9.8`
+- ✅ Vulnerable dependencies added: `commons-collections 3.2.1` & `commons-compress 1.18`
 - ✅ Snyk configuration file: `.snyk`
 - ✅ Vulnerability detection ready for testing
+- ✅ Tests pass (5/5) with Spring Boot context loading properly
 
 ### ✅ Exercise 4: Advanced Scanning - COMPLETE
 
@@ -43,10 +44,87 @@
 
 ### What You'll See:
 
-- 🚨 Vulnerabilities detected in jackson-databind 2.9.8
+- 🚨 Vulnerabilities detected in commons-collections 3.2.1 (CVE-2015-6420) and commons-compress 1.18 (CVE-2019-12402)
 - 📊 Security reports in GitHub Actions
 - 🛡️ SARIF findings in Security tab
 - 📋 Automated issue creation for critical findings
+
+## 🔧 Troubleshooting Common Issues
+
+### 🚨 Issue: "authentication failed (timeout)" 
+
+**Error Details:**
+```
+ERROR   Unspecified Error (SNYK-CLI-0000)
+         authentication failed (timeout)
+```
+
+**Solutions:**
+
+1. **Check SNYK_TOKEN Configuration:**
+   ```bash
+   # In your GitHub repository:
+   # Go to Settings → Secrets and variables → Actions
+   # Verify SNYK_TOKEN exists and has the correct value
+   ```
+
+2. **Verify Token Validity:**
+   - Go to https://snyk.io
+   - Login to your account
+   - Navigate to Account Settings → Auth Token
+   - Copy a fresh token (tokens can expire)
+   - Update the GitHub secret with the new token
+
+3. **Manual Token Testing (if you have Snyk CLI locally):**
+   ```bash
+   npm install -g snyk
+   snyk auth [YOUR_TOKEN]
+   snyk test --maven
+   ```
+
+4. **Network/Firewall Issues:**
+   - GitHub Actions might have network restrictions
+   - Try triggering the workflow again (transient network issue)
+   - Check GitHub Actions status page
+
+5. **Alternative: Use GitHub Dependabot** (if Snyk continues to fail):
+   ```yaml
+   # Create .github/dependabot.yml
+   version: 2
+   updates:
+     - package-ecosystem: "maven"
+       directory: "/"
+       schedule:
+         interval: "weekly"
+   ```
+
+### 🔄 If Authentication Keeps Failing:
+
+1. **Recreate Snyk Account:**
+   - Delete old account if needed
+   - Sign up fresh at https://snyk.io
+   - Generate new API token
+
+2. **Check Token Format:**
+   - Should look like: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+   - No extra spaces or characters
+
+3. **Test with Minimal Workflow:**
+   ```yaml
+   name: Snyk Test
+   on: workflow_dispatch
+   jobs:
+     test:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - run: echo "Testing Snyk token..."
+         - uses: snyk/actions/maven@master
+           env:
+             SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+   ```
+
+## 🎯 Current Status Summary:
 
 ## 📁 Implementation Files:
 
