@@ -9,6 +9,7 @@
 Error: Resource not accessible by integration - https://docs.github.com/rest
 ```
 
+
 **Solution**: Added proper permissions to workflows
 ```yaml
 permissions:

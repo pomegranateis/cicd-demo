@@ -267,9 +267,6 @@ jobs:
         with:
           sarif_file: snyk-container.sarif
           category: snyk-container
-        with:
-          sarif_file: snyk-container.sarif
-          category: snyk-container
 
   # Monitor deployed dependencies (only on main branch)
   monitor:
