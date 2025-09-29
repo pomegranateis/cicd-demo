@@ -9,11 +9,12 @@ phases:
   build:
     commands:
     - echo Build started on `date`
-    - mvn install
+    - mvn clean verify
+    - echo Running SonarCloud analysis...
+    - mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN
   post_build:
     commands:
     - echo Build completed on `date`
-    - mvn package
     # - mv target/cicd-demo-0.0.1-SNAPSHOT.jar cicd-demo-0.0.1-SNAPSHOT.jar
 artifacts:
   files:
