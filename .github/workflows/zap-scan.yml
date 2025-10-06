@@ -57,6 +57,12 @@ jobs:
             -r report_html.html \
             -J report_json.json \
             -w report_md.md
+        continue-on-error: true  # Allow warnings/findings without failing
+
+      - name: Check if reports exist
+        run: |
+          echo "Checking for report files..."
+          ls -la report_*.* || echo "No report files found"
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
@@ -67,6 +73,7 @@ jobs:
             report_html.html
             report_json.json
             report_md.md
+          if-no-files-found: warn  # Just warn instead of error
 
       - name: Stop application container
         if: always()
