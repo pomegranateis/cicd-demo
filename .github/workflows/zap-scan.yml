@@ -6,8 +6,38 @@ on:
   workflow_dispatch:
 
 jobs:
-  zap-scan:
-    name: ZAP Baseline Scan
+        - name: Alternative ZAP scan (if main scan failed)
+        if: always()
+        run: |
+          echo "=== Attempting alternative ZAP scan approach ==="
+          if [ ! -f "${{ github.workspace }}/report.html" ]; then
+            echo "Main ZAP scan failed, trying alternative approach..."
+            
+            # Try with different ZAP image and simpler approach
+            docker run --rm \
+              -v ${{ github.workspace }}:/zap/wrk/:rw \
+              --network host \
+              -t owasp/zap2docker-stable \
+              zap-baseline.py \
+              -t http://localhost:5000 \
+              -I \
+              -r /zap/wrk/alt-report.html || echo "Alternative scan also failed"
+          else
+            echo "Main ZAP scan succeeded, skipping alternative"
+          fi
+
+      - name: Upload ZAP Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-reports
+          path: |
+            report.html
+            report.json
+            report.md
+            alt-report.html
+            zap-reports/
+          if-no-files-found: warn    name: ZAP Baseline Scan
     runs-on: ubuntu-latest
 
     steps:
@@ -40,26 +70,67 @@ jobs:
           done
           exit 1
 
-      - name: Create reports directory
-        run: mkdir -p zap-reports
-
-      - name: Run ZAP Scan
+      - name: Test application connectivity
         run: |
-          docker run -v ${{ github.workspace }}/zap-reports:/zap/wrk/:rw \
+          echo "=== Testing Application Connectivity ==="
+          echo "From GitHub runner:"
+          curl -I http://localhost:5000 || echo "Runner cannot reach localhost:5000"
+          
+          echo -e "\nFrom Docker container with host network:"
+          docker run --network host curlimages/curl:latest curl -I http://localhost:5000 || echo "Container cannot reach localhost:5000"
+          
+          echo -e "\nChecking what's listening on port 5000:"
+          netstat -tlnp | grep :5000 || echo "Nothing listening on port 5000"
+          
+          echo -e "\nDocker containers:"
+          docker ps
+
+      - name: Run ZAP Scan with detailed logging
+        run: |
+          echo "=== Starting ZAP Scan ==="
+          echo "Working directory: ${{ github.workspace }}"
+          echo "ZAP will write reports to: ${{ github.workspace }}"
+          
+          # Create reports directory and set permissions
+          mkdir -p ${{ github.workspace }}/zap-reports
+          chmod 777 ${{ github.workspace }}/zap-reports
+          
+          # Run ZAP with verbose output and proper error handling
+          docker run --network host \
+            -v ${{ github.workspace }}:/zap/wrk/:rw \
+            -u root \
             -t ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
-            -t http://172.17.0.1:5000 \
+            -t http://localhost:5000 \
             -r report.html \
             -J report.json \
-            -w report.md
-        continue-on-error: true
+            -w report.md \
+            -d || echo "ZAP scan completed with exit code: $?"
+
+      - name: Debug file generation
+        run: |
+          echo "=== Checking for ZAP report files ==="
+          echo "Contents of workspace root:"
+          ls -la ${{ github.workspace }}/
+          
+          echo -e "\nLooking for report files specifically:"
+          find ${{ github.workspace }} -name "report*" -type f || echo "No report files found"
+          
+          echo -e "\nChecking zap-reports directory:"
+          ls -la ${{ github.workspace }}/zap-reports/ || echo "zap-reports directory not found or empty"
+          
+          echo -e "\nAll files in workspace:"
+          find ${{ github.workspace }} -type f -name "*.html" -o -name "*.json" -o -name "*.md" | grep -E "(report|zap)" || echo "No ZAP-related files found"
 
       - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: zap-reports
-          path: zap-reports/
+          path: |
+            ./report.html
+            ./report.json
+            ./report.md
           if-no-files-found: warn
 
       - name: Stop application
