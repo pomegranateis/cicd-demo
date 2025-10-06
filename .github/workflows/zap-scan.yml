@@ -55,9 +55,9 @@ jobs:
             -t ghcr.io/zaproxy/zaproxy:2.14.0 \
             zap-baseline.py \
             -t http://localhost:5000 \
-            -r report_html.html \
-            -J report_json.json \
-            -w report_md.md
+            -r /zap/wrk/report_html.html \
+            -J /zap/wrk/report_json.json \
+            -w /zap/wrk/report_md.md
         continue-on-error: true  # Allow warnings/findings without failing
 
       - name: Check if reports exist
