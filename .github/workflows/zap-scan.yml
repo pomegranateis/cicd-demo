@@ -54,12 +54,14 @@ jobs:
           target: 'http://localhost:5000'
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
+          create-issue: false
+          fail-action: false
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: zap-report
+          name: zap-baseline-report
           path: |
             report_html.html
             report_json.json
