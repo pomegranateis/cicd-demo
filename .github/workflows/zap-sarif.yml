@@ -1,4 +1,4 @@
-name: OWASP ZAP Security Scan
+name: ZAP SARIF Upload
 
 on:
   push:
@@ -6,9 +6,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  zap-scan:
-    name: ZAP Baseline Scan
+  zap-sarif:
+    name: ZAP SARIF Upload
     runs-on: ubuntu-latest
+    
+    permissions:
+      security-events: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -51,15 +55,31 @@ jobs:
             -w report.md
         continue-on-error: true
 
-      - name: Upload ZAP Reports
+      - name: Convert ZAP JSON to SARIF
+        run: |
+          echo "=== Converting ZAP Report to SARIF ==="
+          ls -la *.json 2>/dev/null || echo "No JSON files found yet"
+          python3 convert-zap-to-sarif.py report.json report.sarif
+        continue-on-error: true
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: report.sarif
+          category: zap-scan
+        continue-on-error: true
+
+      - name: Upload ZAP Reports (HTML + SARIF)
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: zap-reports
+          name: zap-sarif-reports
           path: |
             report.html
             report.json
             report.md
+            report.sarif
           if-no-files-found: warn
 
       - name: Stop application
