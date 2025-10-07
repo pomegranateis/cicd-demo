@@ -1,0 +1,67 @@
+name: ZAP SARIF Upload
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  zap-sarif:
+    runs-on: ubuntu-latest
+
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up environment
+        run: |
+          mvn clean package -DskipTests
+          docker build -t cicd-demo:test .
+          docker run -d -p 5000:5000 --name app cicd-demo:test
+          timeout 60 bash -c 'until curl -f http://localhost:5000/; do sleep 2; done'
+
+      - name: Run ZAP Scan
+        run: |
+          docker run --network host \
+            -v ${{ github.workspace }}:/zap/wrk/:rw \
+            -u root \
+            -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://localhost:5000 \
+            -J zap_report.json \
+            -r zap_report.html
+        continue-on-error: true
+
+      - name: Convert ZAP JSON to SARIF
+        run: |
+          python3 convert-zap-to-sarif.py
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: zap_report.sarif
+          category: zap-scan
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-sarif-reports
+          path: |
+            zap_report.json
+            zap_report.html
+            zap_report.sarif
+
+      - name: Cleanup
+        if: always()
+        run: docker stop app && docker rm app
