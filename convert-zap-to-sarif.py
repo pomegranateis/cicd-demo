@@ -1,10 +1,20 @@
 # convert-zap-to-sarif.py
 import json
 import sys
+import os
 
 def convert_zap_to_sarif(zap_json_file, sarif_output_file):
-    with open(zap_json_file, 'r') as f:
-        zap_data = json.load(f)
+    # Check if input file exists
+    if not os.path.exists(zap_json_file):
+        print(f"Error: ZAP JSON file '{zap_json_file}' not found")
+        return False
+    
+    try:
+        with open(zap_json_file, 'r') as f:
+            zap_data = json.load(f)
+    except Exception as e:
+        print(f"Error reading '{zap_json_file}': {e}")
+        return False
 
     sarif = {
         "version": "2.1.0",
@@ -38,8 +48,14 @@ def convert_zap_to_sarif(zap_json_file, sarif_output_file):
                 }]
             })
 
-    with open(sarif_output_file, 'w') as f:
-        json.dump(sarif, f, indent=2)
+    try:
+        with open(sarif_output_file, 'w') as f:
+            json.dump(sarif, f, indent=2)
+        print(f"Successfully converted to SARIF: {sarif_output_file}")
+        return True
+    except Exception as e:
+        print(f"Error writing SARIF file '{sarif_output_file}': {e}")
+        return False
 
 def map_risk_level(risk_code):
     mapping = {
@@ -59,12 +75,16 @@ if __name__ == '__main__':
         input_file = 'zap_report.json'
         output_file = 'zap_report.sarif'
     
-    try:
-        convert_zap_to_sarif(input_file, output_file)
-        print(f"Successfully converted {input_file} to {output_file}")
-    except FileNotFoundError:
-        print(f"Error: Could not find input file {input_file}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error converting ZAP report to SARIF: {e}")
+    # Try different possible input filenames
+    possible_files = [input_file, 'report.json', 'zap_report.json']
+    
+    success = False
+    for filename in possible_files:
+        if os.path.exists(filename):
+            print(f"Found ZAP report: {filename}")
+            success = convert_zap_to_sarif(filename, output_file)
+            break
+    
+    if not success:
+        print(f"Error: No ZAP JSON report found. Tried: {', '.join(possible_files)}")
         sys.exit(1)
