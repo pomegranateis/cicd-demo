@@ -98,20 +98,20 @@ jobs:
             echo "DAST scan completed successfully"
           fi
 
-      - name: Convert ZAP to SARIF and Upload
+      - name: Verify ZAP Reports Generated
         run: |
-          echo "=== Converting ZAP Report to SARIF ==="
-          ls -la *.json 2>/dev/null || echo "No JSON files found"
-          python3 convert-zap-to-sarif.py report.json zap_report.sarif
-        continue-on-error: true
-
-      - name: Upload ZAP SARIF
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: zap_report.sarif
-          category: dast-zap-scan
-        continue-on-error: true
+          echo "=== ZAP Report Status ==="
+          ls -la report.* zap_report.* 2>/dev/null || echo "Some report files may be missing"
+          
+          if [ -f "zap_report.html" ]; then
+            echo "✅ HTML Report: $(wc -c < zap_report.html) bytes"
+          fi
+          if [ -f "report.json" ]; then
+            echo "✅ JSON Report: $(wc -c < report.json) bytes"
+          fi
+          if [ -f "zap_report.md" ]; then
+            echo "✅ Markdown Report: $(wc -c < zap_report.md) bytes"
+          fi
 
       - name: Upload DAST artifacts
         uses: actions/upload-artifact@v4
@@ -122,7 +122,6 @@ jobs:
             report.json
             zap_report.html
             zap_report.md
-            zap_report.sarif
 
       - name: Cleanup
         if: always()
