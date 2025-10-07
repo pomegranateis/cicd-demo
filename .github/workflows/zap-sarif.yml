@@ -1,4 +1,4 @@
-name: OWASP ZAP Security Scan with SARIF
+name: OWASP ZAP Security Scan
 
 on:
   push:
@@ -7,11 +7,10 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
-  zap-scan-and-sarif:
-    name: ZAP Scan and SARIF Upload
+  zap-scan:
+    name: ZAP Security Scan
     runs-on: ubuntu-latest
 
     steps:
@@ -55,36 +54,15 @@ jobs:
             -w report.md
         continue-on-error: true
 
-      - name: Check if JSON report exists
-        run: |
-          echo "Checking for report.json..."
-          ls -la report.json || echo "JSON report not found"
-
-      - name: Convert ZAP JSON to SARIF
-        uses: SvanBoxel/zaproxy-to-ghas@main
-        with:
-          zaproxy_json: report.json
-          output_file_name: zap.sarif
-        continue-on-error: true
-
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: zap.sarif
-          category: zap-baseline
-        continue-on-error: true
-
-      - name: Upload All ZAP Reports (HTML + JSON + SARIF)
+      - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: zap-complete-reports
+          name: zap-reports
           path: |
             report.html
             report.json
             report.md
-            zap.sarif
 
       - name: Stop application
         if: always()
