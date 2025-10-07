@@ -5,21 +5,21 @@ phases:
       java: corretto17
   pre_build:
     commands:
-    - echo In the pre_build phase...
+      - echo In the pre_build phase...
   build:
     commands:
-    - echo Build started on `date`
-    - mvn clean verify
-    - echo Running SonarCloud analysis...
-    - mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN
+      - echo Build started on `date`
+      - mvn clean verify
+      - echo Running SonarCloud analysis...
+      - mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN
   post_build:
     commands:
-    - echo Build completed on `date`
+      - echo Build completed on `date`
     # - mv target/cicd-demo-0.0.1-SNAPSHOT.jar cicd-demo-0.0.1-SNAPSHOT.jar
 artifacts:
   files:
-  - target/cicd-demo-0.0.1-SNAPSHOT.jar
-  - scripts/*
-  - .ebextensions/**/*
-  - appspec.yml
+    - target/cicd-demo-0.0.1-SNAPSHOT.jar
+    - scripts/*
+    - .ebextensions/**/*
+    - appspec.yml
   discard-paths: yes

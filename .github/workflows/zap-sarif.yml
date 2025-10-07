@@ -20,8 +20,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Build application
         run: mvn clean package -DskipTests
@@ -31,7 +31,7 @@ jobs:
 
       - name: Run application container
         run: docker run -d -p 5000:5000 --name cicd-demo-app cicd-demo:test
-          
+
       - name: Wait for application
         run: |
           for i in {1..30}; do
@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: zap-reports  # Valid name with hyphen
+          name: zap-reports # Valid name with hyphen
           path: |
             zap-report.html
             zap-report.json

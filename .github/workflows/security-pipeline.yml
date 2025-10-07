@@ -18,8 +18,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v3
@@ -61,8 +61,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Build and deploy
         run: |
@@ -83,7 +83,7 @@ jobs:
             -J report.json \
             -r zap_report.html \
             -w zap_report.md || exit_code=$?
-          
+
           echo "DAST scan completed with exit code: ${exit_code:-0}"
           case ${exit_code:-0} in
             0) echo "✅ DAST: No security issues found" ;;
@@ -92,7 +92,7 @@ jobs:
             3) echo "⚠️ DAST: High risk security issues detected (review required)" ;;
             *) echo "❌ DAST: Scan failed with unexpected exit code: ${exit_code}" && exit 1 ;;
           esac
-          
+
           # Exit codes 0, 1, 2 are considered success for CI purposes  
           if [ ${exit_code:-0} -le 2 ]; then
             echo "DAST scan completed successfully"
@@ -102,7 +102,7 @@ jobs:
         run: |
           echo "=== ZAP Report Status ==="
           ls -la report.* zap_report.* 2>/dev/null || echo "Some report files may be missing"
-          
+
           if [ -f "zap_report.html" ]; then
             echo "✅ HTML Report: $(wc -c < zap_report.html) bytes"
           fi
@@ -139,94 +139,94 @@ jobs:
         run: |
           cat > security-report.md << 'EOF'
           # 🔒 Comprehensive Security Analysis Report
-          
+
           ## 📊 Pipeline Overview
-          
+
           This report combines Static Application Security Testing (SAST) and Dynamic Application Security Testing (DAST) results for a comprehensive security assessment.
-          
+
           ## 🔍 SAST Results (SonarCloud)
-          
+
           **Status:** ✅ Completed
-          
+
           ### Key Metrics:
           - **Code vulnerabilities:** Check SonarCloud dashboard
           - **Security hotspots:** Review required
           - **Code quality gates:** Must pass for deployment
           - **Technical debt:** Monitor and address
-          
+
           ### Actions Required:
           1. Review SonarCloud dashboard at: https://sonarcloud.io/project/overview?id=pomegranateis_cicd-demo
           2. Address all HIGH and CRITICAL severity issues
           3. Resolve security hotspots before production deployment
-          
+
           ## 🌐 DAST Results (OWASP ZAP)
-          
+
           **Status:** ✅ Completed
-          
+
           ### Key Findings:
           - **Runtime vulnerabilities:** Check ZAP HTML report
           - **Configuration issues:** Review security headers
           - **Network security:** Validate SSL/TLS configuration
           - **Authentication/Authorization:** Test access controls
-          
+
           ### Actions Required:
           1. Download and review ZAP HTML report from workflow artifacts
           2. Fix all HIGH risk DAST findings immediately
           3. Address MEDIUM risk findings before next release
           4. Implement missing security headers (CSP, HSTS, etc.)
-          
+
           ## 🔧 Integration Status
-          
+
           ### GitHub Security Integration:
           - **SARIF Upload:** ✅ ZAP results uploaded to Security tab
           - **Code Scanning:** ✅ Available in repository Security section
           - **Security Alerts:** ✅ Automated alerts configured
-          
+
           ## 📋 Security Recommendations
-          
+
           ### Immediate Actions (Critical):
           1. ❗ Address all HIGH severity SAST issues from SonarCloud
           2. ❗ Fix all HIGH risk DAST findings from ZAP scan
           3. ❗ Review and resolve all security hotspots
-          
+
           ### Short-term Actions (1-2 weeks):
           1. 🔸 Implement missing security headers (X-Content-Type-Options, X-Frame-Options, CSP)
           2. 🔸 Address MEDIUM severity findings from both SAST and DAST
           3. 🔸 Set up automated security testing in CI/CD pipeline
-          
+
           ### Long-term Actions (1 month):
           1. 🔹 Establish security quality gates
           2. 🔹 Implement security training for development team
           3. 🔹 Regular security assessments and penetration testing
-          
+
           ## 📈 Security Metrics Dashboard
-          
+
           ### SAST Metrics:
           - **Vulnerabilities:** See SonarCloud project dashboard
           - **Security Rating:** Target A grade or higher
           - **Coverage:** Maintain >80% code coverage
-          
+
           ### DAST Metrics:
           - **High Risk Issues:** Target 0
           - **Medium Risk Issues:** Target <5
           - **Security Headers:** Target 100% implementation
-          
+
           ## 🎯 Quality Gates
-          
+
           ### Pre-Production Checklist:
           - [ ] All HIGH/CRITICAL SAST issues resolved
           - [ ] All HIGH risk DAST findings fixed
           - [ ] Security hotspots reviewed and addressed
           - [ ] Security headers implemented
           - [ ] Code review completed with security focus
-          
+
           ### Deployment Approval:
           - [ ] SAST quality gate: PASSED
           - [ ] DAST scan: No HIGH risk findings
           - [ ] Security team approval: REQUIRED for production
-          
+
           ---
-          
+
           **Report Generated:** $(date)
           **Pipeline:** Complete Security Pipeline
           **Tools:** SonarCloud (SAST) + OWASP ZAP (DAST)
