@@ -51,4 +51,20 @@ def map_risk_level(risk_code):
     return mapping.get(str(risk_code), 'warning')
 
 if __name__ == '__main__':
-    convert_zap_to_sarif('zap_report.json', 'zap_report.sarif')
+    if len(sys.argv) >= 3:
+        input_file = sys.argv[1]
+        output_file = sys.argv[2]
+    else:
+        # Default filenames for backward compatibility
+        input_file = 'zap_report.json'
+        output_file = 'zap_report.sarif'
+    
+    try:
+        convert_zap_to_sarif(input_file, output_file)
+        print(f"Successfully converted {input_file} to {output_file}")
+    except FileNotFoundError:
+        print(f"Error: Could not find input file {input_file}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error converting ZAP report to SARIF: {e}")
+        sys.exit(1)

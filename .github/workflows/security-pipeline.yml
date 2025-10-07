@@ -73,6 +73,7 @@ jobs:
 
       - name: ZAP Baseline Scan
         run: |
+          echo "=== Running DAST Security Scan ==="
           docker run --network host \
             -v ${{ github.workspace }}:/zap/wrk/:rw \
             -u root \
@@ -81,12 +82,26 @@ jobs:
             -t http://localhost:5000 \
             -J zap_report.json \
             -r zap_report.html \
-            -w zap_report.md
-        continue-on-error: true
+            -w zap_report.md || exit_code=$?
+          
+          echo "DAST scan completed with exit code: ${exit_code:-0}"
+          case ${exit_code:-0} in
+            0) echo "✅ DAST: No security issues found" ;;
+            1) echo "⚠️ DAST: Low risk security issues found" ;;
+            2) echo "⚠️ DAST: Medium risk security issues found" ;;
+            3) echo "🔴 DAST: High risk security issues found" ;;
+            *) echo "❌ DAST: Scan failed with unexpected exit code: ${exit_code}" ;;
+          esac
 
       - name: Convert ZAP to SARIF and Upload
         run: |
-          python3 convert-zap-to-sarif.py
+          if [ -f "zap_report.json" ]; then
+            python3 convert-zap-to-sarif.py zap_report.json zap_report.sarif
+          elif [ -f "report.json" ]; then
+            python3 convert-zap-to-sarif.py report.json zap_report.sarif
+          else
+            echo "No ZAP JSON report found to convert"
+          fi
         continue-on-error: true
 
       - name: Upload ZAP SARIF

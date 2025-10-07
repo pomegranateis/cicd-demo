@@ -32,6 +32,7 @@ jobs:
 
       - name: Run ZAP Scan
         run: |
+          echo "=== Running ZAP Security Scan ==="
           docker run --network host \
             -v ${{ github.workspace }}:/zap/wrk/:rw \
             -u root \
@@ -39,18 +40,49 @@ jobs:
             zap-baseline.py \
             -t http://localhost:5000 \
             -J zap_report.json \
-            -r zap_report.html
-        continue-on-error: true
+            -r zap_report.html || exit_code=$?
+          
+          echo "ZAP scan completed with exit code: ${exit_code:-0}"
+          case ${exit_code:-0} in
+            0) echo "✅ ZAP scan completed - No issues found" ;;
+            1) echo "⚠️ ZAP scan completed - Low risk issues found" ;;
+            2) echo "⚠️ ZAP scan completed - Medium risk issues found" ;;
+            3) echo "🔴 ZAP scan completed - High risk issues found" ;;
+            *) echo "❌ ZAP scan failed with unexpected exit code: ${exit_code}" ;;
+          esac
 
       - name: Convert ZAP JSON to SARIF
         run: |
-          python3 convert-zap-to-sarif.py
+          if [ -f "zap_report.json" ]; then
+            python3 convert-zap-to-sarif.py zap_report.json zap_report.sarif
+          elif [ -f "report.json" ]; then
+            python3 convert-zap-to-sarif.py report.json zap_report.sarif
+          else
+            echo "No ZAP JSON report found to convert"
+            exit 1
+          fi
+        continue-on-error: true
 
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: zap_report.sarif
           category: zap-scan
+
+      - name: Verify ZAP Reports
+        run: |
+          echo "=== ZAP Report Status ==="
+          ls -la *.html *.json *.sarif 2>/dev/null || echo "Some report files may be missing"
+          
+          if [ -f "zap_report.html" ]; then
+            echo "✅ HTML Report: $(wc -c < zap_report.html) bytes"
+          fi
+          if [ -f "zap_report.json" ]; then
+            echo "✅ JSON Report: $(wc -c < zap_report.json) bytes"
+          fi
+          if [ -f "zap_report.sarif" ]; then
+            echo "✅ SARIF Report: $(wc -c < zap_report.sarif) bytes"
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -61,6 +93,7 @@ jobs:
             zap_report.json
             zap_report.html
             zap_report.sarif
+          if-no-files-found: warn
 
       - name: Cleanup
         if: always()
