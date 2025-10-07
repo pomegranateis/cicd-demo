@@ -42,32 +42,32 @@ jobs:
             sleep 2
           done
 
+      - name: Create reports directory
+        run: mkdir -p ${GITHUB_WORKSPACE}/zap-reports
+
       - name: Run ZAP Baseline Scan
         run: |
           docker run --network host \
-            -v ${{ github.workspace }}:/zap/wrk/:rw \
+            -v ${GITHUB_WORKSPACE}/zap-reports:/zap/wrk/:rw \
             -t ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t http://localhost:5000 \
-            -r /zap/wrk/report.html \
-            -J /zap/wrk/report.json \
-            -w /zap/wrk/report.md
+            -r report.html \
+            -J report.json \
+            -w report.md
         continue-on-error: true
 
-      - name: Check if reports exist
+      - name: List generated files
         run: |
-          echo "Checking for reports..."
-          ls -la report.* || echo "No reports found"
+          echo "Files in zap-reports directory:"
+          ls -la ${GITHUB_WORKSPACE}/zap-reports/
 
       - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: zap-reports
-          path: |
-            report.html
-            report.json
-            report.md
+          path: zap-reports/
           if-no-files-found: warn
 
       - name: Stop application
