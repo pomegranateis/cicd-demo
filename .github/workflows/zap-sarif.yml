@@ -1,18 +1,18 @@
-name: ZAP SARIF Upload
+name: OWASP ZAP Security Scan with SARIF
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
-  zap-sarif:
-    name: ZAP SARIF Upload
+  zap-scan-and-sarif:
+    name: ZAP Scan and SARIF Upload
     runs-on: ubuntu-latest
-    
-    permissions:
-      security-events: write
-      contents: read
 
     steps:
       - name: Checkout code
@@ -43,7 +43,7 @@ jobs:
             sleep 2
           done
 
-      - name: Run ZAP Scan
+      - name: Run ZAP Baseline Scan
         run: |
           docker run --network host \
             -v ${{ github.workspace }}:/zap/wrk/:rw \
@@ -55,32 +55,36 @@ jobs:
             -w report.md
         continue-on-error: true
 
-      - name: Convert ZAP JSON to SARIF
+      - name: Check if JSON report exists
         run: |
-          echo "=== Converting ZAP Report to SARIF ==="
-          ls -la *.json 2>/dev/null || echo "No JSON files found yet"
-          python3 convert-zap-to-sarif.py report.json report.sarif
+          echo "Checking for report.json..."
+          ls -la report.json || echo "JSON report not found"
+
+      - name: Convert ZAP JSON to SARIF
+        uses: SvanBoxel/zaproxy-to-ghas@main
+        with:
+          zaproxy_json: report.json
+          output_file_name: zap.sarif
         continue-on-error: true
 
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: report.sarif
-          category: zap-scan
+          sarif_file: zap.sarif
+          category: zap-baseline
         continue-on-error: true
 
-      - name: Upload ZAP Reports (HTML + SARIF)
+      - name: Upload All ZAP Reports (HTML + JSON + SARIF)
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: zap-sarif-reports
+          name: zap-complete-reports
           path: |
             report.html
             report.json
             report.md
-            report.sarif
-          if-no-files-found: warn
+            zap.sarif
 
       - name: Stop application
         if: always()
