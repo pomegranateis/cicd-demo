@@ -37,7 +37,7 @@
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
-			<version>3.2.1</version> <!-- Known vulnerable version (CVE-2015-6420) -->
+			<version>3.2.2</version> <!-- Known vulnerable version (CVE-2015-6420) -->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
